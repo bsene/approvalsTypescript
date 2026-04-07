@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { namesFromVitest } from "./namer/vitestNamer.js";
 import { withOptions, type Options } from "./options.js";
 import {
@@ -5,8 +6,10 @@ import {
   ApprovalMissingError,
   deleteIfExists,
   normalize,
+  readApprovedBinaryOrNull,
   readApprovedOrEmpty,
   writeReceived,
+  writeReceivedBinary,
 } from "./writer/fileWriter.js";
 
 export async function verify(
@@ -54,4 +57,80 @@ export async function verifyHtml(
   partial: Partial<Options> = {},
 ): Promise<void> {
   return verify(html, { extension: "html", ...partial });
+}
+
+export async function verifyXml(
+  xml: string,
+  partial: Partial<Options> = {},
+): Promise<void> {
+  return verify(xml, { extension: "xml", ...partial });
+}
+
+/**
+ * Verifies the contents of an existing file on disk against an approved
+ * golden file. The file's extension is used for the approved file unless
+ * overridden via options.
+ */
+export async function verifyFile(
+  filePath: string,
+  partial: Partial<Options> = {},
+): Promise<void> {
+  const content = readFileSync(filePath, "utf8");
+  const ext = filePath.split(".").pop() ?? "txt";
+  return verify(content, { extension: ext, ...partial });
+}
+
+/**
+ * Runs `fn` and verifies the resulting error's name + message against the
+ * approved file. Fails if `fn` does not throw.
+ */
+export async function verifyException(
+  fn: () => unknown | Promise<unknown>,
+  partial: Partial<Options> = {},
+): Promise<void> {
+  let formatted: string;
+  try {
+    await fn();
+    formatted = "<no exception thrown>";
+  } catch (err) {
+    if (err instanceof Error) {
+      formatted = `${err.name}: ${err.message}`;
+    } else {
+      formatted = String(err);
+    }
+  }
+  return verify(formatted, partial);
+}
+
+/**
+ * Verifies a binary buffer against an approved file. Comparison is byte-exact;
+ * scrubbers and line-ending normalization do not apply.
+ */
+export async function verifyBinary(
+  data: Buffer,
+  partial: Partial<Options> = {},
+): Promise<void> {
+  const options = withOptions({ extension: "bin", ...partial });
+  const { approvedPath, receivedPath } = namesFromVitest(options.extension);
+
+  const approved = readApprovedBinaryOrNull(approvedPath);
+
+  if (approved === null) {
+    writeReceivedBinary(receivedPath, data);
+    await options.reporter.report(receivedPath, approvedPath);
+    throw new ApprovalMissingError(
+      `No approved file found.\n  approved: ${approvedPath}\n  received: ${receivedPath}\nReview the received file and rename it to .approved if correct.`,
+    );
+  }
+
+  if (approved.equals(data)) {
+    deleteIfExists(receivedPath);
+    return;
+  }
+
+  writeReceivedBinary(receivedPath, data);
+  await options.reporter.report(receivedPath, approvedPath);
+  throw new ApprovalMismatchError(
+    `Approval mismatch.\n  approved: ${approvedPath}\n  received: ${receivedPath}`,
+  );
 }

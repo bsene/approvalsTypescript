@@ -1,4 +1,12 @@
-export { verify, verifyAsJson, verifyHtml } from "./verify.js";
+export {
+  verify,
+  verifyAsJson,
+  verifyHtml,
+  verifyXml,
+  verifyFile,
+  verifyException,
+  verifyBinary,
+} from "./verify.js";
 export {
   defaultOptions,
   withOptions,
