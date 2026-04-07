@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
-import { namesFromVitest } from "./namer/vitestNamer.js";
-import { withOptions, type Options } from "./options.js";
+import { withOptions, type PartialOptions } from "./options.js";
+import { prettyXml } from "./format/xml.js";
+import { prettyHtml } from "./format/html.js";
 import {
   ApprovalMismatchError,
   ApprovalMissingError,
@@ -14,10 +15,10 @@ import {
 
 export async function verify(
   data: unknown,
-  partial: Partial<Options> = {},
+  partial: PartialOptions = {},
 ): Promise<void> {
   const options = withOptions(partial);
-  const { approvedPath, receivedPath } = namesFromVitest(options.extension);
+  const { approvedPath, receivedPath } = options.namer.names(options.extension);
 
   const raw = typeof data === "string" ? data : String(data);
   const received = normalize(options.scrubber(raw));
@@ -32,7 +33,7 @@ export async function verify(
     );
   }
 
-  if (normalize(approved) === received) {
+  if (options.comparator.equals(received, normalize(approved))) {
     deleteIfExists(receivedPath);
     return;
   }
@@ -46,7 +47,7 @@ export async function verify(
 
 export async function verifyAsJson(
   data: unknown,
-  partial: Partial<Options> = {},
+  partial: PartialOptions = {},
 ): Promise<void> {
   const json = JSON.stringify(data, null, 2);
   return verify(json, { extension: "json", ...partial });
@@ -54,16 +55,16 @@ export async function verifyAsJson(
 
 export async function verifyHtml(
   html: string,
-  partial: Partial<Options> = {},
+  partial: PartialOptions = {},
 ): Promise<void> {
-  return verify(html, { extension: "html", ...partial });
+  return verify(prettyHtml(html), { extension: "html", ...partial });
 }
 
 export async function verifyXml(
   xml: string,
-  partial: Partial<Options> = {},
+  partial: PartialOptions = {},
 ): Promise<void> {
-  return verify(xml, { extension: "xml", ...partial });
+  return verify(prettyXml(xml), { extension: "xml", ...partial });
 }
 
 /**
@@ -73,7 +74,7 @@ export async function verifyXml(
  */
 export async function verifyFile(
   filePath: string,
-  partial: Partial<Options> = {},
+  partial: PartialOptions = {},
 ): Promise<void> {
   const content = readFileSync(filePath, "utf8");
   const ext = filePath.split(".").pop() ?? "txt";
@@ -86,7 +87,7 @@ export async function verifyFile(
  */
 export async function verifyException(
   fn: () => unknown | Promise<unknown>,
-  partial: Partial<Options> = {},
+  partial: PartialOptions = {},
 ): Promise<void> {
   let formatted: string;
   try {
@@ -108,10 +109,10 @@ export async function verifyException(
  */
 export async function verifyBinary(
   data: Buffer,
-  partial: Partial<Options> = {},
+  partial: PartialOptions = {},
 ): Promise<void> {
   const options = withOptions({ extension: "bin", ...partial });
-  const { approvedPath, receivedPath } = namesFromVitest(options.extension);
+  const { approvedPath, receivedPath } = options.namer.names(options.extension);
 
   const approved = readApprovedBinaryOrNull(approvedPath);
 

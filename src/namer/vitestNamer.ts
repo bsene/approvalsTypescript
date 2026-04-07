@@ -1,10 +1,8 @@
 import { basename, dirname, extname, join } from "node:path";
 import { expect } from "vitest";
+import type { ApprovalNames, Namer } from "./namer.js";
 
-export interface ApprovalNames {
-  approvedPath: string;
-  receivedPath: string;
-}
+export type { ApprovalNames } from "./namer.js";
 
 /**
  * Derives approved/received file paths from Vitest's current test state.
@@ -32,6 +30,11 @@ export function namesFromVitest(extension: string): ApprovalNames {
     receivedPath: `${stem}.received.${extension}`,
   };
 }
+
+/** Default Namer implementation backed by Vitest's test state. */
+export const vitestNamer: Namer = {
+  names: namesFromVitest,
+};
 
 function sanitize(name: string): string {
   return name.replace(/[^a-zA-Z0-9._-]+/g, "_").replace(/^_+|_+$/g, "");

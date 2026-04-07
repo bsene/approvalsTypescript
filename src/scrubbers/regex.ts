@@ -1,9 +1,14 @@
 import type { Scrubber } from "../options.js";
 
-export function scrubAll(pattern: RegExp, replacement: string): Scrubber {
+export type Replacement = string | ((match: string, ...groups: string[]) => string);
+
+export function scrubAll(pattern: RegExp, replacement: Replacement): Scrubber {
   const flags = pattern.flags.includes("g") ? pattern.flags : pattern.flags + "g";
   const global = new RegExp(pattern.source, flags);
-  return (input) => input.replace(global, replacement);
+  return (input) =>
+    typeof replacement === "string"
+      ? input.replace(global, replacement)
+      : input.replace(global, replacement as (...args: string[]) => string);
 }
 
 export function combine(...scrubbers: Scrubber[]): Scrubber {

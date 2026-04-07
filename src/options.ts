@@ -1,16 +1,36 @@
 import type { Reporter } from "./reporters/reporter.js";
 import { CommandLineReporter } from "./reporters/commandLineReporter.js";
+import { MultiReporter } from "./reporters/multiReporter.js";
+import type { Namer } from "./namer/namer.js";
+import { vitestNamer } from "./namer/vitestNamer.js";
+import { type Comparator, stringComparator } from "./comparator.js";
+import { combine } from "./scrubbers/regex.js";
 
 export type Scrubber = (input: string) => string;
 
 export interface Options {
   /** File extension for approved/received files (no dot). */
   extension: string;
-  /** Transforms applied to received content before comparison. */
+  /** Transform applied to received content before comparison. */
   scrubber: Scrubber;
   /** Reporter invoked on mismatch. */
   reporter: Reporter;
+  /** Names approved/received files. Defaults to Vitest test state. */
+  namer: Namer;
+  /** Compares received and approved strings. Defaults to exact equality. */
+  comparator: Comparator;
 }
+
+/**
+ * Partial options accepted by `verify*` functions. Scrubbers and reporters may
+ * be passed as arrays — they will be composed via `combine` / `MultiReporter`.
+ */
+export type PartialOptions = Partial<
+  Omit<Options, "scrubber" | "reporter">
+> & {
+  scrubber?: Scrubber | Scrubber[];
+  reporter?: Reporter | Reporter[];
+};
 
 export const identityScrubber: Scrubber = (s) => s;
 
@@ -19,9 +39,22 @@ export function defaultOptions(): Options {
     extension: "txt",
     scrubber: identityScrubber,
     reporter: new CommandLineReporter(),
+    namer: vitestNamer,
+    comparator: stringComparator,
   };
 }
 
-export function withOptions(partial: Partial<Options> = {}): Options {
-  return { ...defaultOptions(), ...partial };
+export function withOptions(partial: PartialOptions = {}): Options {
+  const defaults = defaultOptions();
+  const { scrubber, reporter, ...rest } = partial;
+  return {
+    ...defaults,
+    ...rest,
+    scrubber: Array.isArray(scrubber)
+      ? combine(...scrubber)
+      : scrubber ?? defaults.scrubber,
+    reporter: Array.isArray(reporter)
+      ? new MultiReporter(reporter)
+      : reporter ?? defaults.reporter,
+  };
 }
