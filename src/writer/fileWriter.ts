@@ -24,9 +24,19 @@ export function writeReceived(path: string, content: string): void {
   writeFileSync(path, content, "utf8");
 }
 
+export function writeReceivedBinary(path: string, content: Buffer): void {
+  mkdirSync(dirname(path), { recursive: true });
+  writeFileSync(path, content);
+}
+
 export function readApprovedOrEmpty(path: string): string | null {
   if (!existsSync(path)) return null;
   return readFileSync(path, "utf8");
+}
+
+export function readApprovedBinaryOrNull(path: string): Buffer | null {
+  if (!existsSync(path)) return null;
+  return readFileSync(path);
 }
 
 export function deleteIfExists(path: string): void {
