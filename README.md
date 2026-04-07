@@ -91,3 +91,7 @@ pnpm typecheck  # tsc --noEmit
 ## Status
 
 MVP. Core verify + namer + reporter + scrubbers are in. Out of scope for now: `GenericDiffReporterFactory`, combinations / pairwise, storyboard, logging verify, CLI.
+
+## Reference
+
+This library is a TypeScript port of [ApprovalTests.Python](https://github.com/approvals/ApprovalTests.Python), part of the broader [Approval Tests](https://approvaltests.com) family originally created by Llewellyn Falco. Credit for the design and ideas goes to the upstream maintainers.
