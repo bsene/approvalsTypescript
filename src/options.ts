@@ -5,6 +5,8 @@ import type { Namer } from "./namer/namer.js";
 import { vitestNamer } from "./namer/vitestNamer.js";
 import { type Comparator, stringComparator } from "./comparator.js";
 import { combine } from "./scrubbers/regex.js";
+import type { Writer } from "./writer/strings.js";
+import { StringWriter } from "./writer/strings.js";
 
 export type Scrubber = (input: string) => string;
 
@@ -19,17 +21,20 @@ export interface Options {
   namer: Namer;
   /** Compares received and approved strings. Defaults to exact equality. */
   comparator: Comparator;
+  /** Writer for saving received files. Defaults to StringWriter. */
+  writer: Writer;
 }
 
 /**
- * Partial options accepted by `verify*` functions. Scrubbers and reporters may
- * be passed as arrays — they will be composed via `combine` / `MultiReporter`.
+ * Partial options accepted by `verify*` functions. Scrubbers, writers, and reporters may
+ * be passed as arrays — they will be composed via `combine` / `MultiWriter` / `MultiReporter`.
  */
 export type PartialOptions = Partial<
-  Omit<Options, "scrubber" | "reporter">
+  Omit<Options, "scrubber" | "reporter" | "writer">
 > & {
   scrubber?: Scrubber | Scrubber[];
   reporter?: Reporter | Reporter[];
+  writer?: Writer | Writer[];
 };
 
 export const identityScrubber: Scrubber = (s) => s;
@@ -41,12 +46,13 @@ export function defaultOptions(): Options {
     reporter: new CommandLineReporter(),
     namer: vitestNamer,
     comparator: stringComparator,
+    writer: new StringWriter(),
   };
 }
 
 export function withOptions(partial: PartialOptions = {}): Options {
   const defaults = defaultOptions();
-  const { scrubber, reporter, ...rest } = partial;
+  const { scrubber, reporter, writer, ...rest } = partial;
   return {
     ...defaults,
     ...rest,
@@ -56,5 +62,8 @@ export function withOptions(partial: PartialOptions = {}): Options {
     reporter: Array.isArray(reporter)
       ? new MultiReporter(reporter)
       : reporter ?? defaults.reporter,
+    writer: Array.isArray(writer)
+      ? new MultiWriter(writer)
+      : writer ?? defaults.writer,
   };
 }

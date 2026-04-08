@@ -2,6 +2,10 @@ import { readFileSync } from "node:fs";
 import { withOptions, type PartialOptions } from "./options.js";
 import { prettyXml } from "./format/xml.js";
 import { prettyHtml } from "./format/html.js";
+import type { Writer } from "./writer/strings.js";
+import type { Namer } from "./namer/namer.js";
+import type { Reporter } from "./reporters/reporter.js";
+import type { Comparator } from "./comparator.js";
 import {
   ApprovalMismatchError,
   ApprovalMissingError,
@@ -13,12 +17,17 @@ import {
   writeReceivedBinary,
 } from "./writer/fileWriter.js";
 
+/**
+ * Core verification engine. Handles path resolution, content normalization,
+ * approval comparison, and file write/reporting via injected dependencies.
+ */
 export async function verify(
   data: unknown,
   partial: PartialOptions = {},
 ): Promise<void> {
   const options = withOptions(partial);
   const { approvedPath, receivedPath } = options.namer.names(options.extension);
+  const writer: Writer = options.writer;
 
   const raw = typeof data === "string" ? data : String(data);
   const received = normalize(options.scrubber(raw));
@@ -26,7 +35,7 @@ export async function verify(
   const approved = readApprovedOrEmpty(approvedPath);
 
   if (approved === null) {
-    writeReceived(receivedPath, received);
+    writer.write(receivedPath, received);
     await options.reporter.report(receivedPath, approvedPath);
     throw new ApprovalMissingError(
       `No approved file found.\n  approved: ${approvedPath}\n  received: ${receivedPath}\nReview the received file and rename it to .approved if correct.`,
@@ -38,7 +47,7 @@ export async function verify(
     return;
   }
 
-  writeReceived(receivedPath, received);
+  writer.write(receivedPath, received);
   await options.reporter.report(receivedPath, approvedPath);
   throw new ApprovalMismatchError(
     `Approval mismatch.\n  approved: ${approvedPath}\n  received: ${receivedPath}`,
@@ -113,11 +122,12 @@ export async function verifyBinary(
 ): Promise<void> {
   const options = withOptions({ extension: "bin", ...partial });
   const { approvedPath, receivedPath } = options.namer.names(options.extension);
+  const writer: Writer = options.writer;
 
   const approved = readApprovedBinaryOrNull(approvedPath);
 
   if (approved === null) {
-    writeReceivedBinary(receivedPath, data);
+    writer.writeBinary(receivedPath, data);
     await options.reporter.report(receivedPath, approvedPath);
     throw new ApprovalMissingError(
       `No approved file found.\n  approved: ${approvedPath}\n  received: ${receivedPath}\nReview the received file and rename it to .approved if correct.`,
@@ -129,7 +139,7 @@ export async function verifyBinary(
     return;
   }
 
-  writeReceivedBinary(receivedPath, data);
+  writer.writeBinary(receivedPath, data);
   await options.reporter.report(receivedPath, approvedPath);
   throw new ApprovalMismatchError(
     `Approval mismatch.\n  approved: ${approvedPath}\n  received: ${receivedPath}`,

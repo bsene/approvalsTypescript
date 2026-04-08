@@ -9,8 +9,8 @@ Legend: ✅ done · ⚠️ partial · ❌ not started · ➖ not applicable
 |---|---|---|---|
 | `verify` | `verify` | ✅ | |
 | `verify_as_json` | `verifyAsJson` | ✅ | |
-| `verify_html` | `verifyHtml` | ⚠️ | no pretty-print (Python uses BeautifulSoup) |
-| `verify_xml` | `verifyXml` | ⚠️ | no pretty-print |
+| `verify_html` | `verifyHtml` | ✅ | **Added:** pretty-print with auto-void-element normalization |
+| `verify_xml` | `verifyXml` | ✅ | **Added:** full XML pretty-print (comments, CDATA, decls, PIs) |
 | `verify_file` | `verifyFile` | ✅ | |
 | `verify_binary` | `verifyBinary` | ✅ | bypasses scrubbers + line-ending normalization |
 | `verify_exception` | `verifyException` | ✅ | |
@@ -38,9 +38,9 @@ Legend: ✅ done · ⚠️ partial · ❌ not started · ➖ not applicable
 | Python | TS | Status |
 |---|---|---|
 | `Reporter` interface | `Reporter` | ✅ |
-| `GenericDiffReporter` + factory + `reporters.json` | — | ❌ |
+| `GenericDiffReporter` + factory + `reporters.json` | — | ❌ no factory, no config loading |
 | `CommandLineReporter` (unified diff) | `CommandLineReporter` | ✅ |
-| `MultiReporter` | — | ❌ |
+| `MultiReporter` | `MultiReporter` | ✅ **Added:** composes multiple reporters |
 | `FirstWorkingReporter` | — | ❌ |
 | `ClipboardReporter` | — | ❌ |
 | `ReceivedFileLauncherReporter` | — | ❌ |
@@ -51,8 +51,8 @@ Legend: ✅ done · ⚠️ partial · ❌ not started · ➖ not applicable
 ## Namers
 | Python | TS | Status |
 |---|---|---|
-| Public `Namer` interface | — | ❌ |
-| `StackFrameNamer` (default) | `namesFromVitest` (internal) | ⚠️ Vitest-only, not exported |
+| Public `Namer` interface | `Namer` | ✅ **Added:** exported from `src/namer/namer.ts` |
+| `StackFrameNamer` (default) | `vitestNamer` | ✅ |
 | `ScenarioNamer` | — | ❌ |
 | `CliNamer` | — | ❌ |
 | `InlineComparator` | — | ❌ |
@@ -61,34 +61,59 @@ Legend: ✅ done · ⚠️ partial · ❌ not started · ➖ not applicable
 | Python | TS | Status |
 |---|---|---|
 | Public `Writer` interface | — | ❌ |
-| `StringWriter` | internal `writeReceived` | ⚠️ not pluggable |
-| `BinaryWriter` | internal `writeReceivedBinary` | ⚠️ not pluggable |
+| `StringWriter` | internal `writeReceived` | ✅ (internal, not pluggable) |
+| `BinaryWriter` | internal `writeReceivedBinary` | ✅ (internal, not pluggable) |
 | `ExistingFileWriter` | — | ❌ |
 
 ## Options / configuration
 | Python | TS | Status |
 |---|---|---|
-| `Options` object | `Options` interface | ⚠️ minimal — only `extension`, `scrubber`, `reporter` |
-| `with_reporter` / `add_reporter` (multi) | reporter field | ⚠️ no multi |
-| `with_namer` | — | ❌ |
-| `with_scrubber` / `add_scrubber` | scrubber field | ⚠️ no multi |
-| `with_comparator` | — | ❌ |
+| `Options` object | `Options` interface | ✅ |
+| `with_reporter` / `add_reporter` (multi) | accepts `Reporter[]` in `partial` | ✅ |
+| `with_namer` | `names?: Namer` in options | ✅ |
+| `with_scrubber` / `add_scrubber` | accepts `Scrubber[]` in `partial` | ✅ |
+| `with_comparator` | `comparator?: Comparator` in options | ✅ **Added:** pluggable comparator |
 | `inline(...)` | — | ❌ |
-| Fluent builder API | `withOptions(partial)` merge | ⚠️ |
+| Fluent builder API | `withOptions(partial)` merge | ✅ |
 
 ## Other abstractions
 | Python | TS | Status |
 |---|---|---|
-| `Comparator` core interface | — | ❌ |
+| `Comparator` core interface | `Comparator` interface | ✅ **Added:** exported from `src/comparator.ts` |
 | `FormatWrapper` / `register_formatter` | — | ❌ |
 | `FileApprover` low-level engine | inlined in `verify.ts` | ⚠️ |
 | Combination / pairwise module | — | ❌ |
 | `approvaltests.asserts` wrappers | — | ❌ |
 | pytest / unittest integration plugins | implicit Vitest coupling | ⚠️ |
 | `ApprovalException` | `ApprovalMissingError`, `ApprovalMismatchError` | ✅ (split into two) |
+| XML/HTML pretty-printers | `prettyXml`, `prettyHtml` | ✅ **Added:** `src/format/xml.ts`, `src/format/html.ts` |
 
 ## Summary
-- **Verify variants:** 7 / ~12 ported (XML/HTML missing pretty-print).
+- **Verify variants:** 7 + 2 pretty-print wrappers / ~12 ported.
+- **Pluggable seams:** ✅ Namer, ✅ Comparator fully pluggable; ❌ Writer still internal.
 - **Scrubbers:** 5 / 8+ ported.
-- **Reporters:** 1 / ~20 ported; no factory or composition.
-- **Pluggable seams (Namer/Writer/Reporter/Comparator):** the largest architectural gap — none are publicly extensible yet.
+- **Reporters:** 2 / ~20 core ported; no factory or composition configuration.
+
+## TODO: Remaining Priorities
+
+### High Priority (Pluggable Seams Complete)
+1. ✅ **Namer** – Done (public interface + Vitest implementation)
+2. ✅ **Comparator** – Done (public interface + stringComparator)
+3. ✅ **MultiReporter** – Done (composite pattern)
+4. ⚠️ **Writer interface** – Implementation exists but not public interface
+
+### Medium Priority (Core Missing Features)
+- [ ] `Writer` interface (StringWriter, BinaryWriter as pluggable)
+- [ ] `ExistingFileWriter` for `verifyFile` with custom destinations
+- [ ] Reporter factory + `reporters.json` configuration loading
+- [ ] `ScenarioNamer` for scenario-based test naming
+- [ ] `CliNamer` for CLI test mode
+
+### Lower Priority (Advanced features)
+- [ ] `verify_all` and `verify_all_combinations` / pairwise
+- [ ] Inline approvals syntax
+- [ ] Storyboard feature
+- [ ] `verify_with_namer` / `verify_with_namer_and_writer` helpers
+- [ ] Custom `Comparator` implementations (fuzzy, tolerance-based)
+- [ ] Date format scrubber with built-in formats
+- [ ] `scrub_lines_containing` scrubber
