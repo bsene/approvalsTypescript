@@ -1,0 +1,35 @@
+{
+  "version": 1,
+  "skills": {
+    "mikado-method": {
+      "source": "bsene/skills",
+      "sourceType": "github",
+      "computedHash": "430c543e2fecf391c7336b0d8223b76ecf1c431e20d374c21bf1a4820712d47d"
+    },
+    "oop-principles": {
+      "source": "bsene/skills",
+      "sourceType": "github",
+      "computedHash": "3ecb107ece70ac4cb363ff7392b9076d68d2853744404528f152db052513eff5"
+    },
+    "refactoring": {
+      "source": "bsene/skills",
+      "sourceType": "github",
+      "computedHash": "ea4f9c6d971dcb3bd5a2e84690af3f877f76cd88b3dabaeee25d6d203e5eee12"
+    },
+    "tcrdd": {
+      "source": "bsene/skills",
+      "sourceType": "github",
+      "computedHash": "30def19ef1cffb10428744729c11ada843ff488df13b9547b1c15b033d399c5c"
+    },
+    "testing": {
+      "source": "bsene/skills",
+      "sourceType": "github",
+      "computedHash": "0cc03ce1b0fa833118b844fbca7bbeca74a16e6eb7dc6ec850656106dab358e9"
+    },
+    "typescript": {
+      "source": "bsene/skills",
+      "sourceType": "github",
+      "computedHash": "07e2fcf996c542eab9f2ab4be6b0853e86bb12ab5f09fd9b117af25935c6d9d5"
+    }
+  }
+}
