@@ -1,6 +1,6 @@
 import { spawnSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
-import type { Reporter } from "./reporter.js";
+import type { Reporter } from "./reporter";
 
 /**
  * Default reporter: prints a unified diff between approved and received

@@ -6,7 +6,7 @@ export {
   verifyFile,
   verifyException,
   verifyBinary,
-} from "./verify.js";
+} from "./verify";
 export {
   defaultOptions,
   withOptions,
@@ -14,17 +14,18 @@ export {
   type Options,
   type PartialOptions,
   type Scrubber,
-} from "./options.js";
+} from "./options";
 export {
   ApprovalMismatchError,
   ApprovalMissingError,
-} from "./writer/fileWriter.js";
-export type { Reporter } from "./reporters/reporter.js";
-export { CommandLineReporter } from "./reporters/commandLineReporter.js";
-export { MultiReporter } from "./reporters/multiReporter.js";
-export { scrubAll, combine, scrubGuids, scrubDates } from "./scrubbers/index.js";
-export type { Namer, ApprovalNames } from "./namer/namer.js";
-export { vitestNamer, namesFromVitest } from "./namer/vitestNamer.js";
-export { type Comparator, stringComparator } from "./comparator.js";
-export { prettyXml } from "./format/xml.js";
-export { prettyHtml } from "./format/html.js";
+} from "./writer/fileWriter";
+export { ReporterFactory, DefaultReporterFactory } from "./reporters/defaultReporterFactory.js";
+export type { ReporterOptions } from "./reporters/reporterOptions.js";
+export { CommandLineReporter } from "./reporters/commandLineReporter";
+export { MultiReporter } from "./reporters/multiReporter";
+export { scrubAll, combine, scrubGuids, scrubDates } from "./scrubbers/index";
+export type { Namer, ApprovalNames } from "./namer/namer";
+export { vitestNamer, namesFromVitest } from "./namer/vitestNamer";
+export { type Comparator, stringComparator } from "./comparator";
+export { prettyXml } from "./format/xml";
+export { prettyHtml } from "./format/html";

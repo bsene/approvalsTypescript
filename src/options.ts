@@ -1,12 +1,12 @@
-import type { Reporter } from "./reporters/reporter.js";
-import { CommandLineReporter } from "./reporters/commandLineReporter.js";
+import { DefaultReporterFactory } from "./reporters/defaultReporterFactory.js";
+import type { ReporterOptions } from "./reporters/reporterOptions.js";
 import { MultiReporter } from "./reporters/multiReporter.js";
-import type { Namer } from "./namer/namer.js";
+import type { Writer } from "./writer/strings.js";
 import { vitestNamer } from "./namer/vitestNamer.js";
 import { type Comparator, stringComparator } from "./comparator.js";
 import { combine } from "./scrubbers/regex.js";
-import type { Writer } from "./writer/strings.js";
 import { StringWriter } from "./writer/strings.js";
+import { MultiWriter } from "./writer/multiWriter.js";
 
 export type Scrubber = (input: string) => string;
 
@@ -43,7 +43,7 @@ export function defaultOptions(): Options {
   return {
     extension: "txt",
     scrubber: identityScrubber,
-    reporter: new CommandLineReporter(),
+    reporter: new DefaultReporterFactory().create({ type: "cli" }),
     namer: vitestNamer,
     comparator: stringComparator,
     writer: new StringWriter(),

@@ -2,6 +2,13 @@
  * Base interface for writing content to disk. Implementations can be injected
  * for custom file paths, formats, or destinations.
  */
+import { writeReceived, writeReceivedBinary } from "./fileWriter";
+export interface Writer {
+  /** Write string content to the specified path. */
+  write(path: string, content: string): void;
+  /** Write binary content to the specified path. */
+  writeBinary(path: string, content: Buffer): void;
+}
 export interface Writer {
   /** Write string content to the specified path. */
   write(path: string, content: string): void;

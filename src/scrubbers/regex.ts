@@ -1,4 +1,4 @@
-import type { Scrubber } from "../options.js";
+import type { Scrubber } from "../options";
 
 export type Replacement = string | ((match: string, ...groups: string[]) => string);
 

@@ -1,4 +1,8 @@
-/** Invokes each wrapped writer in order. */
+/**
+ * Invokes each wrapped writer in order.
+ */
+import type { Writer } from "./strings";
+
 export class MultiWriter implements Writer {
   constructor(private readonly writers: Writer[]) {}
 

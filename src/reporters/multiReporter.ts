@@ -1,4 +1,4 @@
-import type { Reporter } from "./reporter.js";
+import type { Reporter } from "./reporter";
 
 /** Invokes each wrapped reporter in order. Errors propagate from the first failure. */
 export class MultiReporter implements Reporter {

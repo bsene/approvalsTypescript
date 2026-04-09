@@ -6,16 +6,7 @@ import type { Writer } from "./writer/strings.js";
 import type { Namer } from "./namer/namer.js";
 import type { Reporter } from "./reporters/reporter.js";
 import type { Comparator } from "./comparator.js";
-import {
-  ApprovalMismatchError,
-  ApprovalMissingError,
-  deleteIfExists,
-  normalize,
-  readApprovedBinaryOrNull,
-  readApprovedOrEmpty,
-  writeReceived,
-  writeReceivedBinary,
-} from "./writer/fileWriter.js";
+import { ApprovalMismatchError, ApprovalMissingError, deleteIfExists, normalize, readApprovedBinaryOrNull, readApprovedOrEmpty, writeReceived, writeReceivedBinary } from "./writer/fileWriter";
 
 /**
  * Core verification engine. Handles path resolution, content normalization,

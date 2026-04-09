@@ -1,8 +1,8 @@
 import { basename, dirname, extname, join } from "node:path";
 import { expect } from "vitest";
-import type { ApprovalNames, Namer } from "./namer.js";
+import type { ApprovalNames, Namer } from "./namer";
 
-export type { ApprovalNames } from "./namer.js";
+export type { ApprovalNames } from "./namer";
 
 /**
  * Derives approved/received file paths from Vitest's current test state.
